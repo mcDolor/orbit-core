@@ -21,19 +21,19 @@ export default function LoginPage() {
       <div className="hidden lg:flex flex-col justify-between absolute inset-0 w-1/2 p-10 z-10">
         {/* Logo and back button */}
         <div className="flex items-center justify-between">
-          <BackButton />
           <Image 
-            src="/images/logo-white.png" 
+            src="/images/logo.webp" 
             alt="Orbit Logo" 
             width={64} 
             height={67} 
             className="object-contain" 
           />
+          <BackButton />
         </div>
 
         {/* Bottom text */}
         <div className="max-w-max">
-          <h1 className="text-5xl font-bold text-white mb-4 text-balance">
+          <h1 className="font-heading text-5xl font-bold text-white mb-4 text-balance">
             Clear the Chaos. Connect the Campus. Built for VSU.
           </h1>
           <p className="text-lg text-gray-200">
