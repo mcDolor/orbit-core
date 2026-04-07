@@ -5,6 +5,16 @@ const nextConfig: NextConfig = {
     root: __dirname,
   },
   cacheComponents: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'www.google.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;
