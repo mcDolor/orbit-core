@@ -1,41 +1,36 @@
-import type { Metadata } from "next";
-import { Geist } from "next/font/google";
-import { ThemeProvider } from "next-themes";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Inter, Montserrat } from 'next/font/google'
+import { Toaster } from 'sonner'
+import './globals.css'
 
-const defaultUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
+const fontBody = Inter({ 
+  subsets: ["latin"],
+  variable: "--font-body",
+});
+
+const _montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-heading",
+  weight: "600",
+})
 
 export const metadata: Metadata = {
-  metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
-};
+  title: 'Orbit - Streamlined Organization Management for VSU',
+  description: 'Orbit is the all-in-one platform designed to simplify organization management for VSU. Say goodbye to semester-long headaches and hello to a streamlined, transparent experience.',
+}
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  display: "swap",
-  subsets: ["latin"],
-});
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+    <html lang="en">
+      <body className={`${fontBody.variable} ${_montserrat.variable} font-sans antialiased`}>
+        {children}
+        <Toaster />
       </body>
     </html>
-  );
+  )
 }
