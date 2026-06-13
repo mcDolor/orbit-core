@@ -1,30 +1,24 @@
 "use client";
 
-
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
-export default function AuthTab() {
-    const [activeTab, setActiveTab] = useState("login");
+interface AuthTabProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
 
+export default function AuthTab({ activeTab, onTabChange }: AuthTabProps) {
     return (
-        <div className="relative flex flex-row w-full">
-            <motion.div
-                className="absolute inset-y-1 left-1 rounded-lg bg-white shadow-sm w-[calc(50%-4px)"
-                initial={{ x: "-100%" }}
-                animate={{ x: activeTab === "login" ? 0 : "100%" }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            />
-
+        <div className="relative flex flex-row w-full border-b border-slate-200">
             {/* Login Button */}
             <Button 
                 variant="secondary"
-                onClick={() => setActiveTab("login")}
+                onClick={() => onTabChange("login")}
                 className={cn(
-                    "relative z-10 flex-1 transition-colors rounded-tl-lg duration-300",
-                    activeTab === "login" ? "text-slate-900" : "text-slate-500 hover:bg-transparent"
+                    "relative z-10 flex-1 transition-all rounded-none duration-300 border-b-2",
+                    activeTab === "login" ? "text-slate-900 font-body border-b-primary-500" : "text-slate-500 hover:bg-transparent border-b-transparent"
                 )}
             >
             Login
@@ -33,10 +27,10 @@ export default function AuthTab() {
             {/* Sign Up Button */}
             <Button
                 variant="secondary"
-                onClick={() => setActiveTab("signup")}
+                onClick={() => onTabChange("signup")}
                 className={cn(
-                    "relative z-10 flex-1 transition-colors rounded-tr-lg duration-300",
-                    activeTab === "signup" ? "text-slate-900" : "text-slate-500 hover:bg-transparent"
+                    "relative z-10 flex-1 transition-all rounded-none duration-300 border-b-2",
+                    activeTab === "signup" ? "text-slate-900 border-b-primary-500" : "text-slate-500 hover:bg-transparent border-b-transparent"
                 )}
             >
             Sign up

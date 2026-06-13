@@ -8,29 +8,43 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function LoginForm() {
+export default function SignUpForm() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [rememberMe, setRememberMe] = useState(false);
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [agreeToTerms, setAgreeToTerms] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
         const supabase = createClient();
         setIsLoading(true);
         setError(null);
 
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            setIsLoading(false);
+            return;
+        }
+
+        if (!agreeToTerms) {
+            setError("Please agree to the terms and conditions");
+            setIsLoading(false);
+            return;
+        }
+
         try {
-            const { error } = await supabase.auth.signInWithPassword({
+            const { error } = await supabase.auth.signUp({
                 email,
                 password,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/protected`,
+                },
             });
             if (error) throw error;
-            
-            // Supabase automatically handles session persistence
-            router.push("/protected");
+            router.push("/auth/sign-up-success");
         } catch (error: unknown) {
             setError(error instanceof Error ? error.message : "An error occurred");
         } finally {
@@ -38,7 +52,7 @@ export default function LoginForm() {
         }
     };
 
-    const handleGoogleLogin = async () => {
+    const handleGoogleSignUp = async () => {
         const supabase = createClient();
         setIsLoading(true);
         setError(null);
@@ -58,7 +72,7 @@ export default function LoginForm() {
     };
 
     return (
-        <form onSubmit={handleLogin} className="flex flex-col w-full gap-8">
+        <form onSubmit={handleSignUp} className="flex flex-col w-full gap-8">
             <div className="flex flex-col gap-2 w-full">
                 <div className="flex flex-col w-full gap-2">
                     {/* Email Field */}
@@ -94,23 +108,41 @@ export default function LoginForm() {
                         />
 
                         <p className="text-xs text-slate-500 font-medium font-sans opacity-0 peer-focus-visible:opacity-100 transition-opacity duration-200">
-                            Use the password associated with your VSU student portal.
+                            Create a strong password for your account.
+                        </p>
+                    </div>
+                    {/* Confirm Password Field */}
+                    <div className="flex flex-col w-full gap-2">
+                        <p className="font-sans text-sm font-medium text-slate-700">Confirm Password</p>
+
+                        <Input 
+                            type="password" 
+                            placeholder="••••••••"
+                            required
+                            className="peer"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            disabled={isLoading}
+                        />
+
+                        <p className="text-xs text-slate-500 font-medium font-sans opacity-0 peer-focus-visible:opacity-100 transition-opacity duration-200">
+                            Passwords must match.
                         </p>
                     </div>
                 </div>
-                {/* Remember Me Checkbox */}
+                {/* Terms and Conditions Checkbox */}
                 <div className="flex flex-row w-full gap-3 items-center">
                     <Checkbox 
-                        id="RememberMe"
-                        checked={rememberMe}
-                        onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                        id="agreeToTerms"
+                        checked={agreeToTerms}
+                        onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
                         disabled={isLoading}
                     />
                     <label 
-                        htmlFor="RememberMe"
+                        htmlFor="agreeToTerms"
                         className="text-xs text-slate-600 font-sans font-medium cursor-pointer flex-1"
                     >
-                        Keep me logged in
+                        I agree to the terms and conditions
                     </label>
                 </div>
             </div>
@@ -122,14 +154,14 @@ export default function LoginForm() {
                 </div>
             )}
 
-            {/* Login Button */}
+            {/* Sign Up Button */}
             <Button
                 type="submit"
                 className="w-full"
                 variant={"primary"}
                 disabled={isLoading}
             >
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? "Creating account..." : "Sign up"}
             </Button>
             {/* Divider */}
             <div className="relative flex items-center">
@@ -140,7 +172,7 @@ export default function LoginForm() {
             {/* Google Button */}
             <Button
                 type="button"
-                onClick={handleGoogleLogin}
+                onClick={handleGoogleSignUp}
                 disabled={isLoading}
                 className="w-full border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 hover:border-slate-400"
                 variant={"outline"}
@@ -148,7 +180,7 @@ export default function LoginForm() {
                 <Google className="w-7 h-7" />
                 Google
             </Button>
-            <p className="flex w-full justify-center font-sans text-xs font-medium text-slate-400 gap-[2px]">Don&apos;t have an account?<a href="/auth/sign-up" className="text-primary-500 ">Sign up</a></p>
+            <p className="flex w-full justify-center font-sans text-xs font-medium text-slate-400 gap-[2px]">Already have an account?<a href="/auth/login" className="text-primary-500 ">Sign in</a></p>
         </form>
-    )
+    );
 }

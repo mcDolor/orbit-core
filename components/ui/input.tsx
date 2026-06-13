@@ -8,7 +8,7 @@ const inputVariants = cva(
     variants: {
       variant: {
         default:
-          "flex flex-row w-full gap-2 h-fit px-4 py-3 bg-white border-slate-200 border-[1px] rounded-lg text-slate-400 placeholder:text-sm placeholder:font-sans placeholder:text-slate-400 focus-visible:ring-[2px] focus-visible:ring-[#10B981] focus-visible:border-transparent  disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400 disabled:shadow-none focus-visible:shadow-[0_0_1.5px_4px_rgba(16,185,129,0.25)] focus-visible:text-slate-900 focus-visible:placeholder:text-transparent focus-visible:placeholder:duration-200",
+          "flex flex-row w-full gap-2 h-fit px-4 py-3 bg-slate-50 text-slate-900 border-slate-200 border-[1px] rounded-lg placeholder:text-sm placeholder:font-sans placeholder:text-slate-400 focus-visible:border-[#10B981] disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400 disabled:shadow-none focus-visible:shadow-[0_0_1.5px_4px_rgba(16,185,129,0.25)] focus-visible:text-slate-900 focus-visible:placeholder:text-transparent focus-visible:placeholder:duration-200",
         },
     },
     defaultVariants: {
