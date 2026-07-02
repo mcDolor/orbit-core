@@ -1,10 +1,38 @@
-import { DeployButton } from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { hasEnvVars } from "@/lib/utils";
-import Link from "next/link";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import Sidebar from "@/components/dashboard/Sidebar";
+
+async function SidebarData() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  if (!data?.claims) redirect("/login");
+
+  const userId = data.claims.sub;
+
+  const [userResult, membershipResult] = await Promise.all([
+    supabase.from("User").select("email, role").eq("user_id", userId).single(),
+    supabase
+      .from("OrgMember")
+      .select("role, Organization(name)")
+      .eq("user_id", userId)
+      .eq("is_deleted", false)
+      .single(),
+  ]);
+
+  const orgName = membershipResult.data
+    ? (membershipResult.data.Organization as unknown as { name: string }).name
+    : null;
+
+  return (
+    <Sidebar
+      role={userResult.data?.role ?? "member"}
+      orgName={orgName}
+      email={userResult.data?.email ?? ""}
+      memberRole={membershipResult.data?.role ?? ""}
+    />
+  );
+}
 
 export default function ProtectedLayout({
   children,
@@ -12,44 +40,15 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main className="min-h-screen flex flex-col items-center">
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}>Next.js Supabase Starter</Link>
-              <div className="flex items-center gap-2">
-                <DeployButton />
-              </div>
-            </div>
-            {!hasEnvVars ? (
-              <EnvVarWarning />
-            ) : (
-              <Suspense>
-                <AuthButton />
-              </Suspense>
-            )}
-          </div>
-        </nav>
-        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
-          {children}
-        </div>
-
-        <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-          <p>
-            Powered by{" "}
-            <a
-              href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-              target="_blank"
-              className="font-bold hover:underline"
-              rel="noreferrer"
-            >
-              Supabase
-            </a>
-          </p>
-          <ThemeSwitcher />
-        </footer>
-      </div>
-    </main>
+    <div className="flex min-h-screen bg-slate-50">
+      <Suspense
+        fallback={
+          <div className="w-[220px] bg-white border-r border-slate-100 flex-shrink-0" />
+        }
+      >
+        <SidebarData />
+      </Suspense>
+      <main className="flex-1 overflow-auto">{children}</main>
+    </div>
   );
 }

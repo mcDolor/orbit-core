@@ -17,7 +17,8 @@ export type SignUpData = {
   firstName: string;
   lastName: string;
   studentNumber: string;
-  organization: string;
+  organization: string;      
+  organizationName: string;
   officerRole: string;
 };
 
@@ -29,6 +30,7 @@ const INITIAL_DATA: SignUpData = {
   lastName: "",
   studentNumber: "",
   organization: "",
+  organizationName: "",
   officerRole: "",
 };
 
@@ -47,21 +49,43 @@ export default function SignUpPage() {
     setError(null);
     try {
       const supabase = createClient();
-      const { error: signUpError } = await supabase.auth.signUp({
+
+      // 1. Create auth user
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/confirm`,
+          emailRedirectTo: `${window.location.origin}/confirm?next=/protected`,
           data: {
             first_name: data.firstName,
             last_name: data.lastName,
             student_number: data.studentNumber,
-            organization: data.organization,
-            officer_role: data.officerRole,
+            role: "member",
           },
         },
       });
       if (signUpError) throw signUpError;
+      if (!authData.user) throw new Error("Sign up failed, please try again.");
+
+      const userId = authData.user.id;
+
+      // 2. Insert into public.User
+      const { error: userError } = await supabase.from("User").insert({
+        user_id: userId,
+        email: data.email,
+        role: "member",
+      });
+      if (userError) throw userError;
+
+      // 3. Insert into OrgApplication
+      const { error: appError } = await supabase.from("OrgApplication").insert({
+        user_id: userId,
+        org_id: data.organization,
+        officer_role: data.officerRole,
+        status: "pending",
+      });
+      if (appError) throw appError;
+
       setStep(4);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred");

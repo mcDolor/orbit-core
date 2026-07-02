@@ -1,15 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { AuthTabs } from "@/components/auth/AuthTabs";
 import { FormField, PasswordField } from "@/components/auth/FormField";
 import { GoogleButton } from "@/components/auth/GoogleButton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { CheckCircle } from "lucide-react";
+
+// Separate component for anything that uses useSearchParams
+function LoginNotice() {
+  const searchParams = useSearchParams();
+  const notice = searchParams.get("notice");
+
+  if (notice === "already-confirmed") {
+    return (
+      <div className="mt-4 flex items-center gap-2 bg-green-50 border border-primary-500 rounded-lg p-3">
+        <CheckCircle size={16} className="text-primary-500 shrink-0" />
+        <p className="text-xs font-medium text-primary-500">
+          Your email is already confirmed. Please log in.
+        </p>
+      </div>
+    );
+  }
+
+  return null;
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -24,14 +44,10 @@ export default function LoginPage() {
     const supabase = createClient();
     setLoading(true);
     setError(null);
-
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      router.push("/protected");
+      router.push("/");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
@@ -43,13 +59,10 @@ export default function LoginPage() {
     const supabase = createClient();
     setLoading(true);
     setError(null);
-
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/protected`,
-        },
+        options: { redirectTo: `${window.location.origin}/protected` },
       });
       if (error) throw error;
     } catch (error: unknown) {
@@ -60,13 +73,9 @@ export default function LoginPage() {
 
   return (
     <AuthLayout>
-      {/* Form Card */}
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md px-8 py-8">
-        {/* Header */}
         <div className="flex flex-col gap-2 mb-8">
-          <h2 className="font-bold text-slate-900 text-2xl">
-            Welcome Back, Officer
-          </h2>
+          <h2 className="font-bold text-slate-900 text-2xl">Welcome Back, Officer</h2>
           <p className="font-medium text-slate-500 text-sm">
             Sign in to start managing your organization with ease.
           </p>
@@ -74,10 +83,12 @@ export default function LoginPage() {
 
         <AuthTabs active="login" />
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-6 mt-8"
-        >
+        {/* Wrap useSearchParams usage in Suspense */}
+        <Suspense>
+          <LoginNotice />
+        </Suspense>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6 mt-8">
           <div className="flex flex-col gap-4">
             <FormField
               id="email"
@@ -89,7 +100,6 @@ export default function LoginPage() {
               required
               disabled={loading}
             />
-
             <PasswordField
               id="password"
               label={
@@ -112,10 +122,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p
-              role="alert"
-              className="font-medium text-xs text-red-500"
-            >
+            <p role="alert" className="font-medium text-xs text-red-500">
               {error}
             </p>
           )}
@@ -127,10 +134,7 @@ export default function LoginPage() {
               onCheckedChange={(v) => setRememberMe(Boolean(v))}
               disabled={loading}
             />
-            <Label
-              htmlFor="remember"
-              className="font-medium text-slate-600 text-xs cursor-pointer"
-            >
+            <Label htmlFor="remember" className="font-medium text-slate-600 text-xs cursor-pointer">
               Keep me logged in
             </Label>
           </div>
@@ -156,10 +160,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center font-medium text-slate-400 text-xs">
           Don&apos;t have an account?{" "}
-          <Link
-            href="/sign-up"
-            className="text-primary-500 hover:underline"
-          >
+          <Link href="/sign-up" className="text-primary-500 hover:underline">
             Create Account
           </Link>
         </p>

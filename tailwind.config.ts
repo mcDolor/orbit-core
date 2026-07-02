@@ -11,6 +11,11 @@ export default {
   theme: {
     extend: {
       colors: {
+        orbit: {
+          green: '#2e8555',
+          hover: '#246b44',
+          darkbg: '#0a1f14'
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

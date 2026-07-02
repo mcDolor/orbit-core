@@ -1,6 +1,8 @@
 "use client";
 
-import { FormField } from "@/components/auth/FormField";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Label } from "@/components/ui/label";
 import { SignUpData } from "@/app/(auth)/sign-up/page";
 
 interface Props {
@@ -12,7 +14,9 @@ interface Props {
   error: string | null;
 }
 
-export default function Organization({
+type Org = { org_id: string; name: string };
+
+export default function SelectOrganization({
   data,
   onChange,
   onBack,
@@ -20,36 +24,63 @@ export default function Organization({
   loading,
   error,
 }: Props) {
+  const [orgs, setOrgs] = useState<Org[]>([]);
+  const [fetching, setFetching] = useState(true);
+
+  useEffect(() => {
+    const fetchOrgs = async () => {
+      const supabase = createClient();
+      const { data: result } = await supabase
+        .from("Organization")
+        .select("org_id, name")
+        .eq("status", "active")
+        .eq("is_delete", false)
+        .order("name");
+      setOrgs(result ?? []);
+      setFetching(false);
+    };
+    fetchOrgs();
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit();
   };
 
+  const selectClass =
+    "w-full h-11 rounded-lg border border-input bg-background px-3 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 disabled:opacity-50";
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+      <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest text-center w-full pb-3 border-b border-slate-200">
         Organization
       </p>
 
-      <FormField
-        id="organization"
-        label="Select Organization"
-        type="text"
-        value={data.organization}
-        onChange={(e) => onChange({ organization: e.target.value })}
-        placeholder="e.g. Supreme Student Council"
-        required
-      />
-
-      <FormField
-        id="officerRole"
-        label="Officer Role"
-        type="text"
-        value={data.officerRole}
-        onChange={(e) => onChange({ officerRole: e.target.value })}
-        placeholder="e.g. President"
-        required
-      />
+      <div className="flex flex-col gap-2">
+        <Label
+          htmlFor="organization"
+          className="font-medium text-slate-700 text-sm"
+        >
+          Select Organization
+        </Label>
+        <select
+          id="organization"
+          value={data.organization}
+          onChange={(e) => onChange({ organization: e.target.value })}
+          disabled={fetching || loading}
+          required
+          className={selectClass}
+        >
+          <option value="" disabled>
+            {fetching ? "Loading organizations…" : "Select your organization"}
+          </option>
+          {orgs.map((org) => (
+            <option key={org.org_id} value={org.org_id}>
+              {org.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {error && (
         <p role="alert" className="font-medium text-xs text-red-500">
@@ -68,10 +99,10 @@ export default function Organization({
         </button>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || fetching}
           className="flex-1 bg-primary-500 h-14 rounded-lg font-bold text-white text-base hover:bg-primary-600 transition-colors disabled:opacity-50"
         >
-          {loading ? "Submitting…" : "Submit Application"}
+          {loading ? "Submitting…" : "Submit"}
         </button>
       </div>
     </form>
